@@ -1,13 +1,17 @@
-import time
 import csv
+import time
 import uuid
 from urllib.parse import unquote
+from loguru import logger
+
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+
+logger.add("logs_info.log", level="INFO", format="{time} - {level} - {message}")
 
 
 def initialize_driver():
@@ -69,7 +73,7 @@ def get_product_links(driver, category_links, product_quantity):
             name = link_element.text
             description = description_element.text
             items.append((product_link, name, description))
-        print(f"Opened: {name}")
+        logger.info(f"Opened: {name}")
     return items
 
 
@@ -99,7 +103,7 @@ def get_product_details(driver, items):
             image_url = image_element.get_attribute('src')
         except Exception as e:
             price, item_number, quantity_available, condition, image_url = "N/A", "N/A", "N/A", "N/A", "N/A"
-            print(f"Failed to extract product item for {product_link}: {e}")
+            logger.info(f"Failed to extract product item for {product_link}: {e}")
 
         unique_key = str(uuid.uuid4())
         detailed_items.append(
@@ -125,9 +129,9 @@ def save_to_csv(detailed_items, csv_file):
                  "Quantity Available", "Condition"])
             for product_data in detailed_items:
                 writer.writerow(product_data)
-        print(f"Product data have been written to {csv_file}")
+        logger.info(f"Product data have been written to {csv_file}")
     except Exception as e:
-        print(f"Failed to write to CSV file: {e}")
+        logger.info(f"Failed to write to CSV file: {e}")
 
 
 def main():
@@ -135,8 +139,8 @@ def main():
     Main function to execute the web scraping workflow.
     """
     BASE_URL = "https://www.bonanza.com/booths/browse_categories"
-    CATEGORY_QUANTITY = 3
-    PRODUCT_QUANTITY = 5
+    CATEGORY_QUANTITY = 2
+    PRODUCT_QUANTITY = 2
     CSV_FILE = "out.csv"
 
     driver = initialize_driver()

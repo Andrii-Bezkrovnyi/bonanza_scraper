@@ -1,13 +1,16 @@
-import time
 import csv
+import time
 import uuid
 from urllib.parse import unquote
 
+from loguru import logger
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+
+logger.add("logs_info.log", level="INFO", format="{time} - {level} - {message}")
 
 options = Options()
 options.headless = True
@@ -17,8 +20,8 @@ options.add_argument('--disable-web-security')
 service = Service(ChromeDriverManager().install())
 
 BASE_URL = "https://www.bonanza.com/booths/browse_categories"
-CATEGORY_QUANTITY = 3
-PRODUCT_QUANTITY = 5
+CATEGORY_QUANTITY = 2
+PRODUCT_QUANTITY = 2
 category_links = []
 items = []
 
@@ -60,7 +63,7 @@ for link in category_links:
             name = link_element.text
             description = description_element.text
             items.append((product_link, name, description))
-        print(f"Opened: {name}")
+        logger.info(f"Opened: {name}")
 
     finally:
         driver.quit()
@@ -91,7 +94,7 @@ for product_link, name, description in items:
         quantity_available = "N/A"
         condition = "N/A"
         image_url = "N/A"
-        print(f"Failed to extract product item for {product_link}: {e}")
+        logger.info(f"Failed to extract product item for {product_link}: {e}")
 
     unique_key = str(uuid.uuid4())
     detailed_items.append(
@@ -108,6 +111,6 @@ try:
              "Quantity Available", "Condition"])
         for product_data in detailed_items:
             writer.writerow(product_data)
-    print(f"Product data have been written to {csv_file}")
+    logger.info(f"Product data have been written to {csv_file}")
 except Exception as e:
-    print(f"Failed to write to CSV file: {e}")
+    logger.info(f"Failed to write to CSV file: {e}")
